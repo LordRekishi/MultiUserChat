@@ -3,17 +3,22 @@ package tech.fallqvist;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Server {
     private final int port;
     private ExecutorService executorService;
-    private List<ClientHandler> clients = new ArrayList<>();
+    private List<ClientHandler> clients;
+    private Set<String> topicsServer;
 
     public Server(int port) {
         this.port = port;
+        clients = new ArrayList<>();
+        topicsServer = new HashSet<>();
     }
 
     public void start() {
@@ -48,8 +53,28 @@ public class Server {
         this.clients = clients;
     }
 
+    public void removeClient(ClientHandler client) {
+        clients.remove(client);
+    }
+
+    public Set<String> getTopicsServer() {
+        return topicsServer;
+    }
+
+    public void setTopicsServer(Set<String> topicsServer) {
+        this.topicsServer = topicsServer;
+    }
+
+    public void addTopicToServer(String topic) {
+        topicsServer.add(topic);
+    }
+
+    public void removeTopicFromServer(String topic) {
+        topicsServer.remove(topic);
+    }
+
     public static void main(String[] args) {
-     Server server = new Server(8080);
-     server.start();
+        Server server = new Server(8080);
+        server.start();
     }
 }
