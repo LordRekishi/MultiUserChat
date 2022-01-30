@@ -30,10 +30,11 @@ public class ClientHandler implements Runnable {
                 if (tokens.length > 0) {
                     String cmd = tokens[0];
                     if (cmd.equalsIgnoreCase("quit") || cmd.equalsIgnoreCase("logoff")) {
+                        handleLogoff();
                         System.out.println("Connection closed...");
                         break;
                     } else if (cmd.equalsIgnoreCase("login")) {
-                        handleLogin(out, tokens);
+                        handleLogin(tokens);
                     } else {
                         out.println("Unknown " + cmd + "\n");
                     }
@@ -48,24 +49,50 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private void handleLogin(PrintWriter out, String[] tokens) throws IOException {
+    private void handleLogoff() throws IOException {
+        for (ClientHandler client : server.getClients()) {
+            if (!client.getUserLoggedIn().equalsIgnoreCase(userLoggedIn)) {
+                client.send(userLoggedIn + " is Offline!\n");
+            }
+        }
+
+        in.close();
+        out.close();
+        clientSocket.close();
+    }
+
+    private void handleLogin(String[] tokens) throws IOException {
         if (tokens.length == 3) {
             String userName = tokens[1];
             String password = tokens[2];
+
+            this.userLoggedIn = userName;
 
             if ((userName.equalsIgnoreCase("guest") &&
                     password.equalsIgnoreCase("guest")) ||
                     (userName.equalsIgnoreCase("patrik") &&
                     password.equalsIgnoreCase("patrik"))) {
-                out.println("Login OK!\n");
-                this.userLoggedIn = userName;
 
-                out.println(userName + " is Online!");
-                System.out.println("User " + userName + " successfully logged in!");
+                out.println("Login OK!\n");
+
+                for (ClientHandler client : server.getClients()) {
+                    if (!client.getUserLoggedIn().equalsIgnoreCase(userLoggedIn)) {
+                        client.send(userLoggedIn + " is Online!\n");
+                    }
+                }
+                for (ClientHandler client : server.getClients()) {
+                    if (!client.getUserLoggedIn().equalsIgnoreCase(userLoggedIn)) {
+                        send(client.getUserLoggedIn() + " is Online!\n");
+                    }
+                }
             } else {
                 out.println("Login ERROR!\n");
             }
         }
+    }
+
+    private void send(String message) {
+        out.println(message);
     }
 
     public String getUserLoggedIn() {
